@@ -1,0 +1,33 @@
+{% extends "base.html.j2" %}
+
+{% block title %}
+    Cinema Location - {{ super() }}
+{% endblock %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+            <div class="panel panel-default">
+                <div class="panel-heading">
+                    <h3 class="panel-title">Cinema Location</h3>
+                </div>
+                <div class="panel-body">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h4>Cinema 1</h4>
+                                <p>Address: 123 Main St.</p>
+                                <p>Phone: 555-1234</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h4>Cinema 2</h4>
+                                <p>Address: 456 Elm St.</p>
+                                <p>Phone: 555-5678</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -189,3 +189,15 @@ def unfollow(username):
     db.session.commit()
     flash(_('You are not following %(username)s.', username=username))
     return redirect(url_for('user', username=username))
+
+@app.route('/cinema')
+def cinema_location():
+    return render_template('Cinema Location.html.j2')
+
+@app.route('/cinema-details', endpoint='cinema_details')
+def cinema_details():
+    address = '123 Main St, Hong Kong'
+    phone = '123-456-7890'
+    email = 'info@cinema.com.hk'
+    website = 'https://www.cinema.com.hk'
+    return render_template('Cinema Location.html.j2', address=address, phone=phone, email=email, website=website)
