@@ -5,8 +5,8 @@ from werkzeug.urls import url_parse
 from flask_babel import _, get_locale
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, PostForm, \
-    ResetPasswordRequestForm, ResetPasswordForm
-from app.models import User, Post
+    ResetPasswordRequestForm, ResetPasswordForm, BookingForm
+from app.models import User, Post, Booking ,Seat
 from app.email import send_password_reset_email
 
 
@@ -17,8 +17,24 @@ def before_request():
         db.session.commit()
     g.locale = str(get_locale())
 
-
 @app.route('/', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET', 'POST'])
+def home():
+    form = BookingForm()
+    if form.validate_on_submit():
+        booking = Booking(movie=form.movie.data, time=form.time.data, price=form.price.data)
+        db.session.add(booking)
+        db.session.commit()
+        for row in range(1, 11):
+            for number in range(1, 11):
+                seat = Seat(row=row, number=number, booking=booking)
+                db.session.add(seat)
+        db.session.commit()
+        flash('Booking created successfully!')
+        return redirect(url_for('main_bp.index'))
+    return render_template('index.html.j2', form=form)
+
+
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     page = request.args.get('page', 1, type=int)
@@ -182,6 +198,36 @@ def unfollow(username):
     flash(_('You are not following %(username)s.', username=username))
     return redirect(url_for('user', username=username))
 
+@app.route('/booking/<int:booking_id>', methods=['GET', 'POST'])
+def booking(booking_id):
+    booking = Booking.query.get_or_404(booking_id)
+    seats = Seat.query.filter_by(booking=booking).all()
+    if request.method == 'POST':
+        for seat in seats:
+            if seat.booked:
+                seat.booked = False
+        for seat_id in request.form.getlist('seats'):
+            seat = Seat.query.get(seat_id)
+            seat.booked = True
+        db.session.commit()
+        flash('Seats booked successfully!')
+        return redirect(url_for('main_bp.booking', booking_id=booking.id))
+    return render_template('book.html.j2', booking=booking, seats=seats)
+
+
+
+
+
+@app.route('/user/<username>')
+@login_required
+def profile(username):
+    user = User.query.filter_by(username=username).first_or_404()
+    posts = [
+        {'author': user, 'body': 'Test post #1'},
+        {'author': user, 'body': 'Test post #2'}
+    ]
+    return render_template('user.html.j2', user=user, posts=posts)
+    
 @app.route('/cinema')
 def cinema_location():
     return render_template('Cinema Location.html.j2')
@@ -194,3 +240,4 @@ def cinema_details():
     email = 'info@cinema.com.hk'
     website = 'https://www.cinema.com.hk'
     return render_template('Cinema Location.html.j2', address=address, phone=phone, email=email, website=website)
+

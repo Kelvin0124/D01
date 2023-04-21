@@ -1,11 +1,8 @@
-
 from datetime import datetime, timedelta, timezone
 from hashlib import md5
 from app import app, db, login
 import jwt
-
 from flask_login import UserMixin
-
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -30,7 +27,7 @@ class User(UserMixin, db.Model):
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f'<User {self.username}>'
 
     def set_password(self, password):
@@ -72,7 +69,7 @@ class User(UserMixin, db.Model):
         try:
             id = jwt.decode(token, app.config["SECRET_KEY"], algorithms="HS256")[
                 "reset_password"]
-        except:           
+        except:
             return None
         return User.query.get(id)
 
@@ -88,6 +85,50 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f'<Post {self.body}>'
+
+class Movie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100))
+    director = db.Column(db.String(100))
+    release_date = db.Column(db.Date)
+
+
+class Room(db.Model):
+    __tablename__ = 'room'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+
+    def __repr__(self):
+        return '<Room %r>' % self.id
+
+class Seat(db.Model):
+    __tablename__ = 'seat'
+    id = db.Column(db.Integer, primary_key=True)
+    row = db.Column(db.String(1), nullable=False)
+    number = db.Column(db.Integer, nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+
+    room = db.relationship('Room', backref='seats')
+    bookings = db.relationship('Booking', backref='seat_record')
+
+    def __repr__(self):
+        return '<Seat %r>' % self.id
+    
+
+class Booking(db.Model):
+    __tablename__ = 'booking'
+    id = db.Column(db.Integer, primary_key=True)
+    movie = db.Column(db.String(50), nullable=False)
+    time = db.Column(db.String(10), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    seat_id = db.Column(db.Integer, db.ForeignKey('seat.id'), nullable=False)
+
+    user = db.relationship('User', backref='bookings')
+    seat = db.relationship('Seat', backref='booking_history', foreign_keys=[seat_id])
+
+    def __repr__(self):
+        return '<Booking %r>' % self.id
 
