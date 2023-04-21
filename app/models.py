@@ -88,7 +88,6 @@ class Post(db.Model):
     def __repr__(self):
         return f'<Post {self.body}>'
 
-
 class Movie(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100))
@@ -132,4 +131,4 @@ class Booking(db.Model):
 
     def __repr__(self):
         return '<Booking %r>' % self.id
-    
+
