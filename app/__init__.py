@@ -24,6 +24,7 @@ bootstrap = Bootstrap(app)
 moment = Moment(app)
 babel = Babel(app)
 
+
 if not app.debug:
     root = logging.getLogger()
     if app.config["MAIL_SERVER"]:
