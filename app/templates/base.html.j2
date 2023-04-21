@@ -18,6 +18,54 @@
 {% endblock %}
 
 {% block navbar %}
+    <nav class="navbar navbar-default" style="background-color: rgb(126, 119, 119); color: rgb(255, 255, 255); border-color: #e7e7e7; border-top: 3px solid red;"" >
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button"
+                        class="navbar-toggle collapsed"
+                        data-toggle="collapse"
+                        data-target="#bs-example-navbar-collapse-1"
+                        aria-expanded="false">
+                    <span class="sr-only">Toggle navigation</span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                    <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="{{ url_for('index') }}" style="color: white;">Microblog</a>
+            </div>
+            <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1" >
+                <ul class="nav navbar-nav">
+                    <li>
+                        <a href="{{ url_for('index') }}" style="color: white;">{{ _('Home') }}</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('explore') }}" style="color: white;">{{ _('Explore') }}</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('home') }}" style="color: white;">{{ _('book') }}</a>
+                    </li>
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    {% if current_user.is_anonymous %}
+                        <li>
+                            <a href="{{ url_for('login') }}" style="color: white;">{{ _('登入') }}</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('register') }}" style="color: white;">{{ _('成為會員') }}</a>
+                        </li>
+                    {% else %}
+                        <li>
+                            <a href="{{ url_for('user', username=current_user.username) }}" style="color: white;">{{ _('Profile') }}</a>
+                        </li>
+                        <li>
+                            <a href="{{ url_for('logout') }}" style="color: white;">{{ _('Logout') }}</a>
+                        </li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </nav>
+=======
       <nav class="navbar navbar-default">
           <div class="container">
               <ul class="nav navbar-nav navbar-right">
