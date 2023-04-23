@@ -92,6 +92,7 @@ class Post(db.Model):
 
     def __repr__(self) -> str:
         return f'<Post {self.body}>'
+
     
 db = SQLAlchemy()
 
@@ -113,3 +114,4 @@ class Ad(db.Model):
 
     def __repr__(self):
         return f'<Ad {self.title}>'
+
