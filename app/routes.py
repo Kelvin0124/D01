@@ -5,6 +5,11 @@ from werkzeug.urls import url_parse
 from flask_babel import _, get_locale
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, PostForm, \
+
+    ResetPasswordRequestForm, ResetPasswordForm, SocialForm, AdForm, AdvertiseForm
+
+from app.models import User, Post, Social, Ad
+
     ResetPasswordRequestForm, ResetPasswordForm, BookingForm
 from app.models import User, Post, Booking ,Seat
 from app.email import send_password_reset_email
@@ -49,6 +54,7 @@ def index():
                            prev_url=prev_url)
 
 
+
 @app.route('/explore')
 @login_required
 def explore():
@@ -62,6 +68,80 @@ def explore():
     return render_template('index.html.j2', title=_('Explore'),
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
+
+@app.route('/ad/create', methods=['GET', 'POST'])
+def create_ad():
+    form = AdForm()
+    if form.validate_on_submit():
+        ad = Ad(title=form.title.data, description=form.description.data, image_url=form.image_url.data)
+        db.session.add(ad)
+        db.session.commit()
+        ads = Ad.query.order_by(Ad.created_at.desc()).all()
+        return redirect(url_for('index'))
+    return render_template('create_ad.html.j2', form=form, ads=ads)
+
+
+@app.route('/advertise', methods=['GET', 'POST'])
+def advertise():
+    
+    form = AdvertiseForm()
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+        image = form.image.data
+        return render_template('advertise.html.j2', form=form, success=True)
+    return render_template('advertise.html.j2', form=form)
+
+
+@app.route('/social/create', methods=['GET', 'POST'])
+def create_social():
+    form = SocialForm()
+    if form.validate_on_submit():
+        social = Social(title=form.title.data, content=form.content.data)
+        db.session.add(social)
+        db.session.commit()
+        return redirect(url_for('index'))
+    return render_template('create_social.html.j2', form=form)
+
+
+@app.route('/social/<int:id>/edit', methods=['GET', 'POST'])
+def edit_social(id):
+    form = EditProfileForm(current_user.username)
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.about_me = form.about_me.data
+        db.session.commit()
+        flash(_('Your changes have been saved.'))
+        return redirect(url_for('edit_profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.about_me.data = current_user.about_me
+    return render_template('edit_social.html.j2', form=form, social=social)
+
+
+@app.route('/social/<int:id>/delete', methods=['POST'])
+def delete_social(id):
+    social = Social.query.get_or_404(id)
+    db.session.delete(social)
+    db.session.commit()
+    return redirect(url_for('index'))
+
+
+@app.route('/edit_profile', methods=['GET', 'POST'])
+@login_required
+def edit_profile():
+    form = EditProfileForm(current_user.username)
+    if form.validate_on_submit():
+        current_user.username = form.username.data
+        current_user.about_me = form.about_me.data
+        db.session.commit()
+        flash(_('Your changes have been saved.'))
+        return redirect(url_for('edit_profile'))
+    elif request.method == 'GET':
+        form.username.data = current_user.username
+        form.about_me.data = current_user.about_me
+    return render_template('edit_profile.html.j2', title=_('Edit Profile'),
+                           form=form)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -150,23 +230,6 @@ def user(username):
                            next_url=next_url, prev_url=prev_url)
 
 
-@app.route('/edit_profile', methods=['GET', 'POST'])
-@login_required
-def edit_profile():
-    form = EditProfileForm(current_user.username)
-    if form.validate_on_submit():
-        current_user.username = form.username.data
-        current_user.about_me = form.about_me.data
-        db.session.commit()
-        flash(_('Your changes have been saved.'))
-        return redirect(url_for('edit_profile'))
-    elif request.method == 'GET':
-        form.username.data = current_user.username
-        form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html.j2', title=_('Edit Profile'),
-                           form=form)
-
-
 @app.route('/follow/<username>')
 @login_required
 def follow(username):
@@ -250,7 +313,6 @@ def cinema_details():
     website = 'https://www.cinema.com.hk'
     return render_template('Cinema Location.html.j2', address=address, phone=phone, email=email, website=website)
 
-<<<<<<< HEAD
 
 @app.route('/mario')
 def mario():
@@ -274,5 +336,5 @@ def index11():
         'video_id': 'VIDEO_ID_GOES_HERE'
     }
     return render_template('index.html', **context)
-=======
->>>>>>> origin/main
+
+
