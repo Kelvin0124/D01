@@ -5,8 +5,9 @@ from werkzeug.urls import url_parse
 from flask_babel import _, get_locale
 from app import app, db
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, PostForm, \
-    ResetPasswordRequestForm, ResetPasswordForm, SocialForm
-from app.models import User, Post, Social
+    ResetPasswordRequestForm, ResetPasswordForm, SocialForm, AdForm, AdvertiseForm
+
+from app.models import User, Post, Social, Ad
 
 
 @app.before_request
@@ -40,6 +41,7 @@ def index():
                            prev_url=prev_url)
 
 
+
 @app.route('/explore')
 @login_required
 def explore():
@@ -54,23 +56,29 @@ def explore():
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
 
-@app.route('/advertise')
-@login_required
+@app.route('/ad/create', methods=['GET', 'POST'])
+def create_ad():
+    form = AdForm()
+    if form.validate_on_submit():
+        ad = Ad(title=form.title.data, description=form.description.data, image_url=form.image_url.data)
+        db.session.add(ad)
+        db.session.commit()
+        ads = Ad.query.order_by(Ad.created_at.desc()).all()
+        return redirect(url_for('index'))
+    return render_template('create_ad.html.j2', form=form, ads=ads)
+
+
+@app.route('/advertise', methods=['GET', 'POST'])
 def advertise():
-    page = request.args.get('page', 1, type=int)
-    posts = Post.query.order_by(Post.timestamp.desc()).paginate(
-        page=page, per_page=app.config["POSTS_PER_PAGE"], error_out=False)
-    next_url = url_for(
-        'explore', page=posts.next_num) if posts.next_num else None
-    prev_url = url_for(
-        'explore', page=posts.prev_num) if posts.prev_num else None
-    return render_template('advertise.html.j2', title=_('Explore'),
-                           posts=posts.items, next_url=next_url,
-                           prev_url=prev_url)
-
-
-
     
+    form = AdvertiseForm()
+    if form.validate_on_submit():
+        title = form.title.data
+        content = form.content.data
+        image = form.image.data
+        return render_template('advertise.html.j2', form=form, success=True)
+    return render_template('advertise.html.j2', form=form)
+
 
 @app.route('/social/create', methods=['GET', 'POST'])
 def create_social():
@@ -81,6 +89,7 @@ def create_social():
         db.session.commit()
         return redirect(url_for('index'))
     return render_template('create_social.html.j2', form=form)
+
 
 @app.route('/social/<int:id>/edit', methods=['GET', 'POST'])
 def edit_social(id):
@@ -95,6 +104,7 @@ def edit_social(id):
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
     return render_template('edit_social.html.j2', form=form, social=social)
+
 
 @app.route('/social/<int:id>/delete', methods=['POST'])
 def delete_social(id):
@@ -237,4 +247,3 @@ def unfollow(username):
     db.session.commit()
     flash(_('You are not following %(username)s.', username=username))
     return redirect(url_for('user', username=username))
-
