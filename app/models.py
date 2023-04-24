@@ -1,11 +1,8 @@
-
 from datetime import datetime, timedelta, timezone
 from hashlib import md5
 from app import app, db, login
 import jwt
-from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
-
 from werkzeug.security import generate_password_hash, check_password_hash
 
 
@@ -21,8 +18,6 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(64), index=True, unique=True)
     email = db.Column(db.String(120), index=True, unique=True)
     password_hash = db.Column(db.String(128))
-    social = db.Column(db.String(120))
-    advertise = db.Column(db.Boolean, default=False)
     posts = db.relationship('Post', backref='author', lazy='dynamic')
     about_me = db.Column(db.String(140))
     last_seen = db.Column(db.DateTime, default=datetime.utcnow)
@@ -32,7 +27,7 @@ class User(UserMixin, db.Model):
         secondaryjoin=(followers.c.followed_id == id),
         backref=db.backref('followers', lazy='dynamic'), lazy='dynamic')
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f'<User {self.username}>'
 
     def set_password(self, password):
@@ -74,7 +69,7 @@ class User(UserMixin, db.Model):
         try:
             id = jwt.decode(token, app.config["SECRET_KEY"], algorithms="HS256")[
                 "reset_password"]
-        except:           
+        except:
             return None
         return User.query.get(id)
 
@@ -90,28 +85,50 @@ class Post(db.Model):
     timestamp = db.Column(db.DateTime, index=True, default=datetime.utcnow)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'))
 
-    def __repr__(self) -> str:
+    def __repr__(self):
         return f'<Post {self.body}>'
 
+class Movie(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(100))
+    director = db.Column(db.String(100))
+    release_date = db.Column(db.Date)
+
+
+class Room(db.Model):
+    __tablename__ = 'room'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(50), nullable=False)
+
+    def __repr__(self):
+        return '<Room %r>' % self.id
+
+class Seat(db.Model):
+    __tablename__ = 'seat'
+    id = db.Column(db.Integer, primary_key=True)
+    row = db.Column(db.String(1), nullable=False)
+    number = db.Column(db.Integer, nullable=False)
+    room_id = db.Column(db.Integer, db.ForeignKey('room.id'), nullable=False)
+
+    room = db.relationship('Room', backref='seats')
+    bookings = db.relationship('Booking', backref='seat_record')
+
+    def __repr__(self):
+        return '<Seat %r>' % self.id
     
-db = SQLAlchemy()
 
-class Social(db.Model):
+class Booking(db.Model):
+    __tablename__ = 'booking'
     id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    content = db.Column(db.Text, nullable=False)
-    date_posted = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    movie = db.Column(db.String(50), nullable=False)
+    time = db.Column(db.String(10), nullable=False)
+    price = db.Column(db.Integer, nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    seat_id = db.Column(db.Integer, db.ForeignKey('seat.id'), nullable=False)
+
+    user = db.relationship('User', backref='bookings')
+    seat = db.relationship('Seat', backref='booking_history', foreign_keys=[seat_id])
 
     def __repr__(self):
-        return f"Social('{self.title}', '{self.date_posted}')"
-
-class Ad(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(100), nullable=False)
-    description = db.Column(db.Text, nullable=False)
-    image_url = db.Column(db.String(200), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
-
-    def __repr__(self):
-        return f'<Ad {self.title}>'
+        return '<Booking %r>' % self.id
 
