@@ -198,6 +198,11 @@ def unfollow(username):
     flash(_('You are not following %(username)s.', username=username))
     return redirect(url_for('user', username=username))
 
+@app.route('/book ')
+def book():
+    form = BookingForm()
+    return render_template('book.html.j2' , form=form)
+
 @app.route('/booking/<int:booking_id>', methods=['GET', 'POST'])
 def booking(booking_id):
     booking = Booking.query.get_or_404(booking_id)
