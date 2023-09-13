@@ -1,0 +1,10 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Encoding=UTF-8
+Name=vox-launcher
+Name[it]=Comandi vocali
+Comment[it]=Comanda il tuo computer con i comandi vocali
+Icon=vox-launcher
+Exec=vox-launcher
+Categories=Application;Accessibility;
